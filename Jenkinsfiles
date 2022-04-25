@@ -1,34 +1,44 @@
 pipeline{
     agent any
 
-    environment {
-        DEPLOY = "${env.BRANCH_NAME == "development" || env.BRANCH_NAME == "master" ? "true" : "false"}"
-        NAME = "${env.BRANCH_NAME == "master" ? "example" : "example-staging"}"
-        def mavenHome =  tool name: "maven:3.8.5", type: "maven"
-        def mavenCMD = "${mavenHome}/bin/mvn"
-        VERSION = "${env.BUILD_ID}"
-        REGISTRY = 'eagunuworld/eagunu-mongo-db'
-        REGISTRY_CREDENTIAL = 'eagunuworld_credentials'
-       }
+       environment {
+            DEPLOY = "${env.BRANCH_NAME == "development" || env.BRANCH_NAME == "master" ? "true" : "false"}"
+            NAME = "${env.BRANCH_NAME == "master" ? "example" : "example-staging"}"
+            def mavenHome =  tool name: "maven:3.8.5", type: "maven"
+            def mavenCMD = "${mavenHome}/bin/mvn"
+            VERSION = "${env.BUILD_ID}"
+            REGISTRY = 'eagunuworld/eagunu-mongo-db'
+            REGISTRY_CREDENTIAL = 'eagunuworld_credentials'
+          }
+
     stages {
          stage('maven build package') {
-             steps {
-              sh "${mavenCMD} clean package"
-               }
-             }
-        stage('Docker Build') {
-             steps {
-               sh "docker build -t ${REGISTRY}:${VERSION} ."
+              steps {
+                  sh "${mavenCMD} clean package"
+                   }
                 }
-             }
+
+          stage('Docker Build') {
+                steps {
+                   sh "docker build -t ${REGISTRY}:${VERSION} ."
+                    }
+                 }
 
         stage('Docker Publish') {
               steps {
-                  withCredentials([string(credentialsId: 'docker_pass', variable: 'docker_password')]) {
-                  sh "docker login -u eagunuworld -p ${docker_password}"
-                 }
-                sh 'docker push ${REGISTRY}:${VERSION}'
-               }
+                   withCredentials([string(credentialsId: 'docker_pass', variable: 'docker_password')]) {
+                   sh "docker login -u eagunuworld -p ${docker_password}"
+                   }
+                 sh 'docker push ${REGISTRY}:${VERSION}'
+                }
+             }
+      stage('Docker Publish') {
+              steps {
+                  withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
+                  sh "helm upgrade --install --force --set name=${NAME} --set image.tag=${VERSION} mongodb mongodb/"
+                    }
+              sh 'docker push ${REGISTRY}:${VERSION}'
             }
+          }
      }
 }
