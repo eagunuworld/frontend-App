@@ -40,5 +40,13 @@ pipeline{
               sh 'helm list'
             }
           }
+
+        stage('Helm releases') {
+                  steps {
+                      withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
+                      sh "helm list"
+                        }
+            }
+          }
      }
 }
