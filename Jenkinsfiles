@@ -9,9 +9,6 @@ pipeline{
        }
     stages {
          stage('maven build package') {
-         when {
-              environment name: 'DEPLOY', value: 'true'
-            }
              steps {
               sh "${mavenCMD} clean package"
              }
