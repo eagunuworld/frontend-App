@@ -24,7 +24,7 @@ pipeline{
 
         stage('Docker Publish') {
               steps {
-                  withCredentials([string(credentialsId: 'puplic_docker_pwd', variable: 'eagunuworld_credentials')])  {
+                  withCredentials([string(credentialsId: 'docker_pass', variable: 'docker_password')])   {
                   sh "docker push ${REGISTRY}:${VERSION}"
                  }
                }
