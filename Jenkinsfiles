@@ -37,7 +37,7 @@ pipeline{
                   withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
                   sh "helm upgrade --install --force --set name=${NAME} --set image.tag=${VERSION} mongodb mongodb/"
                     }
-              sh 'docker push ${REGISTRY}:${VERSION}'
+              sh 'helm list'
             }
           }
      }
