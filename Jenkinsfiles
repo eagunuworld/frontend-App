@@ -6,12 +6,28 @@ pipeline{
         NAME = "${env.BRANCH_NAME == "master" ? "example" : "example-staging"}"
         def mavenHome =  tool name: "maven:3.8.5", type: "maven"
         def mavenCMD = "${mavenHome}/bin/mvn"
+        VERSION = "${env.BUILD_ID}"
+        REGISTRY = 'eagunuworld/eagunu-mongo-db'
+        REGISTRY_CREDENTIAL = 'eagunuworld_credentials'
        }
     stages {
          stage('maven build package') {
              steps {
               sh "${mavenCMD} clean package"
+               }
              }
-         }
+        stage('Docker Build') {
+             steps {
+               sh "docker build -t ${REGISTRY}:${VERSION} ."
+                }
+             }
+
+        stage('Docker Publish') {
+              steps {
+                  withCredentials([string(credentialsId: 'puplic_docker_pwd', variable: 'eagunuworld_credentials')])  {
+                  sh "docker push ${REGISTRY}:${VERSION}"
+                 }
+               }
+            }
      }
 }
