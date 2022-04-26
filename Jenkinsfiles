@@ -38,7 +38,7 @@ pipeline{
                   withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
                   sh "helm upgrade --install --force --set name=${NAME} --set image.tag=${VERSION} mongodb mongodb/"
                     }
-            }
+               }
           }
 
         stage('Helm Version Deployment Releases') {
@@ -48,10 +48,10 @@ pipeline{
                         }
                   }
               }
-       post {
-          success {
-             slackSend "Build deployed successfully - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+         }
+    post {
+      success {
+           slackSend "Build deployed successfully - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
             }
-        }
-     }
+      }
 }
