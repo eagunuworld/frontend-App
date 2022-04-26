@@ -37,6 +37,13 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          env:
+          - name: MONGO_DB_USERNAME
+            value: devdb
+          - name: MONGO_DB_PASSWORD
+            value: devdb@123
+          - name: MONGO_DB_HOSTNAME
+            value: mongo
           livenessProbe:
             httpGet:
               path: /
