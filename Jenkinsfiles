@@ -33,6 +33,18 @@ pipeline{
                 }
              }
 
+      stage('configMaps') {
+                steps {
+                    sh "kubectl apply -f cm-demo.yml"
+                      }
+                 }
+
+      stage('configMaps') {
+                  steps {
+                          sh "kubectl apply -f cm-demo.yml"
+                            }
+                        }
+
       stage('Deployment in Kubernetes clusters') {
               steps {
                   withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
