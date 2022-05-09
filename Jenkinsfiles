@@ -33,7 +33,7 @@ pipeline{
                 }
              }
 
-      stage('configMap') {
+      stage('configMap And Secret Ref') {
               steps {
                   withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
                     sh "kubectl apply -f cm-demo.yml"
