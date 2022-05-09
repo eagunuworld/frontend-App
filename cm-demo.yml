@@ -5,3 +5,11 @@ metadata:
 data:
   mongodb_username: devdb
   mongodb_password: devdb@123
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: username-pwd-my-secret
+type: Opaque
+stringData:
+  mongodb_password: devdb@123
