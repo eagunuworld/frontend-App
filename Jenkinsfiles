@@ -34,12 +34,6 @@ pipeline{
              }
 
       stage('configMaps') {
-                steps {
-                    sh "kubectl apply -f cm-demo.yml"
-                      }
-                 }
-
-      stage('configMaps') {
                   steps {
                           sh "kubectl apply -f cm-demo.yml"
                             }
