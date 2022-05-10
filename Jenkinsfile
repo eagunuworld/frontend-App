@@ -44,7 +44,7 @@ pipeline{
       stage('Deployment in Kubernetes clusters') {
               steps {
                   withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
-                  sh "helm upgrade --install --force --set name=${NAME} --set image.tag=${VERSION} frontendApp frontend/"
+                  sh "helm upgrade --install --force --set name=${NAME} --set image.tag=${VERSION} frontend frontend/"
                     }
                }
           }
