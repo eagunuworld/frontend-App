@@ -1,39 +1,60 @@
-node{
+pipeline{
+    agent any
 
-    stage('SCM Checkout'){
-        git url:  'https://github.com/eagunuworld/mongodb-springboot.git',branch: 'development'
+       environment {
+            DEPLOY = "${env.BRANCH_NAME == "development" || env.BRANCH_NAME == "master" ? "true" : "false"}"
+            NAME = "${env.BRANCH_NAME == "master" ? "example" : "example-staging"}"
+            def mavenHome =  tool name: "maven:3.8.5", type: "maven"
+            def mavenCMD = "${mavenHome}/bin/mvn"
+            VERSION = "${env.BUILD_ID}"
+            REGISTRY = 'eagunuworld/eagunu-mongo-db'
+            REGISTRY_CREDENTIAL = 'eagunuworld_credentials'
+          }
+
+    stages {
+         stage('maven build package') {
+              steps {
+                  sh "${mavenCMD} clean package"
+                   }
+                }
+
+          stage('Docker Build') {
+                steps {
+                   sh "docker build -t ${REGISTRY}:${VERSION} ."
+                    }
+                 }
+
+        stage('Docker Publish') {
+              steps {
+                   withCredentials([string(credentialsId: 'docker_pass', variable: 'docker_password')]) {
+                   sh "docker login -u eagunuworld -p ${docker_password}"
+                   }
+                 sh 'docker push ${REGISTRY}:${VERSION}'
+                }
+             }
+
+      stage('configMap And Secret Ref') {
+              steps {
+                  withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
+                    sh "kubectl apply -f cm-demo.yml"
+                        }
+                      }
+                 }
+
+      stage('Deployment in Kubernetes clusters') {
+              steps {
+                  withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
+                  sh "helm upgrade --install --force --set name=${NAME} --set image.tag=${VERSION} frontendApp frontend/"
+                    }
+               }
+          }
+
+        stage('Helm Version Deployment Releases') {
+                  steps {
+                      withCredentials([kubeconfigFile(credentialsId: 'my-configurations', variable: 'KUBECONFIG')]) {
+                      sh "helm list"
+                    }
+              }
+          }
     }
-
-    stage(" Maven Clean Package"){
-      def mavenHome =  tool name: "maven:3.8.5", type: "maven"
-      def mavenCMD = "${mavenHome}/bin/mvn"
-      sh "${mavenCMD} clean package"
-
-    }
-
-
-    stage('Build Docker Image'){
-        sh 'docker build -t dockerhandson/spring-boot-mongo .'
-    }
-
-    stage('Push Docker Image'){
-        withCredentials([string(credentialsId: 'DOKCER_HUB_PASSWORD', variable: 'DOKCER_HUB_PASSWORD')]) {
-          sh "docker login -u dockerhandson -p ${DOKCER_HUB_PASSWORD}"
-        }
-        sh 'docker push dockerhandson/spring-boot-mongo'
-     }
-
-     stage("Deploy To Kuberates Cluster"){
-       kubernetesDeploy(
-         configs: 'springBootMongo.yml',
-         kubeconfigId: 'KUBERNATES_CONFIG',
-         enableConfigSubstitution: true
-        )
-     }
-
-	  /**
-      stage("Deploy To Kuberates Cluster"){
-        sh 'kubectl apply -f springBootMongo.yml'
-      } **/
-
 }
